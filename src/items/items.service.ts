@@ -49,13 +49,28 @@ export class ItemsService {
   }
 
   async update(id: number, updateItemDto: UpdateItemDto) {
-    const item = await this.itemsRepository.findOneOrFail({ where: { id } });
-    item.public = updateItemDto.public;
-    const comments = updateItemDto.comments.map((comment) => {
-      return new Comment(comment);
+    // const item = await this.itemsRepository.findOneOrFail({ where: { id } });
+    // item.public = updateItemDto.public;
+    // const comments = updateItemDto.comments.map((comment) => {
+    //   return new Comment(comment);
+    // });
+    // item.comments = comments;
+    // await this.entityManager.save(item);
+
+    await this.entityManager.transaction(async (entityManager) => {
+      const item = await this.itemsRepository.findOneOrFail({ where: { id } });
+      item.public = updateItemDto.public;
+      const comments = updateItemDto.comments.map((comment) => {
+        return new Comment(comment);
+      });
+      item.comments = comments;
+      await this.entityManager.save(item);
+
+      //Creating Tag for this Items
+      const tagContent = `${Math.random()}`;
+      const tag = new Tag({ content: tagContent });
+      await this.entityManager.save(tag);
     });
-    item.comments = comments;
-    await this.entityManager.save(item);
   }
 
   async remove(id: number) {
