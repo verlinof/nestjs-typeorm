@@ -4,6 +4,9 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Listing } from './entities/listing.entity';
+import { Comment } from './entities/comment.entity';
+import { Tag } from './entities/tag-entity';
 
 @Injectable()
 export class ItemsService {
@@ -16,7 +19,20 @@ export class ItemsService {
   ) {}
 
   async create(createItemDto: CreateItemDto) {
-    const item = new Item(createItemDto);
+    //Automatically generate Listing with id from item to foreign key
+    const listing = new Listing({
+      ...createItemDto.listing,
+      rating: 0,
+    });
+    const tags = createItemDto.tags.map((tag) => {
+      return new Tag(tag);
+    });
+    const item = new Item({
+      ...createItemDto,
+      comments: [],
+      listing,
+      tags,
+    });
     await this.entityManager.save(item);
   }
 
@@ -25,12 +41,20 @@ export class ItemsService {
   }
 
   async findOne(id: number) {
-    return this.itemsRepository.findOneOrFail({ where: { id } });
+    return this.itemsRepository.findOneOrFail({
+      where: { id },
+      // Untuk menampilkan hasil relasi
+      relations: { listing: true, comments: true, tags: true },
+    });
   }
 
   async update(id: number, updateItemDto: UpdateItemDto) {
     const item = await this.itemsRepository.findOneOrFail({ where: { id } });
     item.public = updateItemDto.public;
+    const comments = updateItemDto.comments.map((comment) => {
+      return new Comment(comment);
+    });
+    item.comments = comments;
     await this.entityManager.save(item);
   }
 

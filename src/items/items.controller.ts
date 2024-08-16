@@ -10,9 +10,6 @@ import {
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Item } from './entities/item.entity';
-import { Repository } from 'typeorm';
 
 @Controller('items')
 export class ItemsController {

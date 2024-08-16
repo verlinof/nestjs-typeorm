@@ -1,18 +1,34 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import { Listing } from './listing.entity';
+import { Comment } from './comment.entity';
+import { AsbtractEntity } from 'src/database/abstract.entity';
+import { Tag } from './tag-entity';
 
 @Entity('items')
-export class Item {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Item extends AsbtractEntity<Item> {
   @Column()
   name: string;
 
   @Column({ default: true })
   public: boolean;
 
-  // Akan menerima objek baru dari ItemService
-  constructor(item: Partial<Item>) {
-    Object.assign(this, item);
-  }
+  //Setup foreign key
+  @OneToOne((type) => Listing, { cascade: true })
+  @JoinColumn()
+  listing: Listing;
+
+  @OneToMany((type) => Comment, (comment) => comment.item, { cascade: true })
+  comments: Comment[];
+
+  @ManyToMany(() => Tag, { cascade: true })
+  @JoinTable()
+  tags: Tag[];
 }
